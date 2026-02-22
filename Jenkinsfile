@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     IMAGE_NAME = "moabdelazem/gitops-nodejs-postgres"
-    COMMIT_SHORT = ""
+    COMMIT_SHORT = "${env.GIT_COMMIT.substring(0, 7)}-${env.BUILD_NUMBER}"
   }
 
   stages {
@@ -21,8 +21,6 @@ pipeline {
       steps {
         dir('app') {
           script {
-            env.COMMIT_SHORT = env.GIT_COMMIT ? env.GIT_COMMIT.take(7) : sh(script: "git rev-parse --short=7 HEAD", returnStdout: true).trim()
-
             sh """
               docker build \\
                 -t ${env.IMAGE_NAME}:latest \\
