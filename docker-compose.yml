@@ -1,0 +1,64 @@
+services:
+  database:
+    image: postgres:18-alpine
+    container_name: gitops-nodejs-postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-devuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpass}
+      POSTGRES_DB: ${POSTGRES_DB:-devdb}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_db:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-devuser} -d ${POSTGRES_DB:-devdb}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-devuser}:${POSTGRES_PASSWORD:-devpass}@database:5432/${POSTGRES_DB:-devdb}
+      NODE_ENV: production
+    depends_on:
+      database:
+        condition: service_healthy
+    command:
+      [
+        "node_modules/node-pg-migrate/bin/node-pg-migrate",
+        "up",
+        "--database-url-var",
+        "DATABASE_URL",
+        "--migrations-dir",
+        "migrations",
+      ]
+    restart: "no"
+
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: gitops-nodejs-postgres-app
+    restart: unless-stopped
+    environment:
+      PORT: 6767
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-devuser}:${POSTGRES_PASSWORD:-devpass}@database:5432/${POSTGRES_DB:-devdb}
+    ports:
+      - "6767:6767"
+    depends_on:
+      database:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_db:

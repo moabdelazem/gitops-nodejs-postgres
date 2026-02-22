@@ -1,0 +1,16 @@
+import { Pool } from "pg";
+import config from "../config/config";
+
+const pool = new Pool({
+  connectionString: config.databaseUrl,
+});
+
+pool.on("error", (err) => {
+  console.error("Unexpected database pool error:", err);
+});
+
+export const query = (text: string, params?: unknown[]) => {
+  return pool.query(text, params);
+};
+
+export default pool;
