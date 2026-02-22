@@ -3,29 +3,30 @@ pipeline {
 
   environment {
     IMAGE_NAME = "moabdelazem/gitops-nodejs-postgres"
-  }
-
-  stage("Audit The Codebase") {
-    steps {
-      dir('app') {
-        sh """
-          grype . --fail-on medium
-        """
-      }
-    }
+    COMMIT_SHORT = ""
   }
 
   stages {
+    stage("Audit The Codebase") {
+      steps {
+        dir('app') {
+          sh """
+            grype . --fail-on medium
+          """
+        }
+      }
+    }
+
     stage('Build The Docker Image') {
       steps {
         dir('app') {
           script {
-            def commitShort = env.GIT_COMMIT ? env.GIT_COMMIT.take(7) : sh(script: "git rev-parse --short=7 HEAD", returnStdout: true).trim()
+            env.COMMIT_SHORT = env.GIT_COMMIT ? env.GIT_COMMIT.take(7) : sh(script: "git rev-parse --short=7 HEAD", returnStdout: true).trim()
 
             sh """
               docker build \\
                 -t ${env.IMAGE_NAME}:latest \\
-                -t ${env.IMAGE_NAME}:${commitShort} \\
+                -t ${env.IMAGE_NAME}:${env.COMMIT_SHORT} \\
                 .
             """
           }
@@ -47,7 +48,7 @@ pipeline {
           sh """
             echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
             docker push ${env.IMAGE_NAME}:latest
-            docker push ${env.IMAGE_NAME}:${commitShort}
+            docker push ${env.IMAGE_NAME}:${env.COMMIT_SHORT}
           """
         }
       }
