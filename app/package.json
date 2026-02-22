@@ -1,0 +1,44 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "TypeScript + Express API for GitOps-based deployment with PostgreSQL",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
+    "compose:up": "docker compose up -d",
+    "compose:down": "docker compose down",
+    "compose:clean": "docker compose down -v",
+    "migrate:up": "node-pg-migrate up --database-url-var DATABASE_URL --migrations-dir migrations",
+    "migrate:down": "node-pg-migrate down --database-url-var DATABASE_URL --migrations-dir migrations",
+    "migrate:create": "node-pg-migrate create --migrations-dir migrations"
+  },
+  "keywords": [
+    "typescript",
+    "express",
+    "postgresql",
+    "docker",
+    "gitops",
+    "kubernetes"
+  ],
+  "author": "Mohamed Abdelazim",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "node-pg-migrate": "^8.0.4",
+    "pg": "^8.18.0",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.3.0",
+    "@types/pg": "^8.16.0",
+    "nodemon": "^3.1.14",
+    "pino-pretty": "^13.1.3",
+    "ts-node": "^10.9.2"
+  }
+}
