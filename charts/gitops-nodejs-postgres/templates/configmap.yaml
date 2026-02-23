@@ -1,0 +1,10 @@
+{{- if .Values.appConfig.create }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "gitops-nodejs-postgres.configMapName" . }}
+  labels:
+    {{- include "gitops-nodejs-postgres.labels" . | nindent 4 }}
+data:
+  {{- toYaml .Values.appConfig.data | nindent 2 }}
+{{- end }}

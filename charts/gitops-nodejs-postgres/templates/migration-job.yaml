@@ -1,0 +1,56 @@
+{{- if .Values.migration.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "gitops-nodejs-postgres.migrationJobName" . }}
+  labels:
+    {{- include "gitops-nodejs-postgres.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migration
+spec:
+  backoffLimit: {{ .Values.migration.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.migration.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "gitops-nodejs-postgres.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migration
+    spec:
+      restartPolicy: {{ .Values.migration.restartPolicy }}
+      {{- if .Values.migration.waitForPostgres.enabled }}
+      initContainers:
+        - name: wait-for-postgres
+          image: "{{ .Values.migration.waitForPostgres.image.repository }}:{{ .Values.migration.waitForPostgres.image.tag }}"
+          imagePullPolicy: {{ .Values.migration.waitForPostgres.image.pullPolicy }}
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "gitops-nodejs-postgres.secretName" . }}
+                  key: POSTGRES_USER
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "gitops-nodejs-postgres.secretName" . }}
+                  key: POSTGRES_DB
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h {{ include "gitops-nodejs-postgres.postgresServiceName" . }} -p {{ .Values.postgres.service.port }} -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do
+                echo "Waiting for postgres..."
+                sleep 2
+              done
+      {{- end }}
+      containers:
+        - name: migrate
+          image: "{{ .Values.migration.image.repository }}:{{ .Values.migration.image.tag }}"
+          imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
+          workingDir: {{ .Values.migration.workingDir }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "gitops-nodejs-postgres.configMapName" . }}
+            - secretRef:
+                name: {{ include "gitops-nodejs-postgres.secretName" . }}
+          args:
+            {{- toYaml .Values.migration.args | nindent 12 }}
+{{- end }}
