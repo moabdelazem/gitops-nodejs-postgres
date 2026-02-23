@@ -1,10 +1,29 @@
 apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: gitops-nodejs-postgres
+  namespace: argocd
+spec:
+  description: Project for gitops-nodejs-postgres
+  sourceRepos:
+    - https://github.com/moabdelazem/gitops-nodejs-postgres.git
+  destinations:
+    - namespace: gitops-nodejs-postgres
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+---
+apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: gitops-nodejs-postgres
   namespace: argocd
 spec:
-  project: default
+  project: gitops-nodejs-postgres
   source:
     repoURL: https://github.com/moabdelazem/gitops-nodejs-postgres.git
     targetRevision: main
@@ -12,6 +31,14 @@ spec:
     helm:
       valueFiles:
         - values.yaml
+      valuesObject:
+        sealedSecret:
+          enabled: true
+          encryptedData:
+            POSTGRES_USER: "AgDWbYWGVyTpHyP5ZbXrMXhMWkqB0OD0rQbWLAM73tXbUIWAsO1REE/ACH9Ybu3H2pkCZmgUbq+H+w8JbNAbyEzu6uH3nluVyIKRpbUgMgUSLV52Z/71EMbP46aSVy3+F0vxBc58K9rLb+sI5re9frqk9F5EiS38PsMeAtNQ4W21yb9dmu7bG1aqfxPYuvAeo44/vwbD46RAfW4kyjg5Oeg5eH+9ewweK6+KvOfgQQxt4nOBv4B5mI4FOATeSPittWZWcj3S7/CwEMURh/l/UJmVTElcJIMvqjLWlQM1mx3u3D7yo1qZP7/Luc4C+bnlTeAFEQPjDqgKNvkY2DY+IJC2yOQOBepRu+LF8q+uBHHNJld7qObg/DvjMRBGCn0ITXLglIfqJUYMAyz1SPFs0x5mN1oSzsTZe083WNofbVeTimyREq62jT7yv4FfiVOAjggQhrWmqBRpmEy86k5qWEgPRz8qxlwiUAWveoCCB9+CGqd2qWp+6Zl/hvU79WMsFjje2oiyEGmlFelacDQqwrdTnTbzaZpHia2pL8OnL70+TSxU5p7ozJNxtN61H3Xuslk95gh2AryMN49UTgCuFD4UAPQ4benNrMTSGSGHjf+xMMte+ZKYzcegR1yJlSyPS/N7OopujsMwAok7ffoDc5r3Hpa0ltqQKu9rT2CXqjqansS1HvtvEE5Vc2/BHBdxsng862XYpy/F"
+            POSTGRES_PASSWORD: "AgAz61blvRAA4FYlcIy3REt9V5ENMiE/iGAZsvU0v/H/svptVCcSO/zhvSC2gDsw0hko/fBio53KdunvEcjOZZ3ns3RzWCWLadGMo/c46f/taxn3F5JfoP5xOPc82thnEN35NIj2A2mSj8gWR+ykymkRK2iUG806r8KuJD13PogOnq9B3e4wRPIMZJDzCGdbqq2XQZGimgXcT2jHTyquqcFBSb2ogGAvJRJaqFPGiT5V7bQVT14eReFfF/wzW9OibIuC9fWan/7RlAWE3VxS3BiODJjt6AYZMPiyA008XPiMpcohtkv9gObd6jmeDkn1IayNIaGH+fnVM71kGCv5dbFWNzmRLMXmdfw5KzN1zaCGRKs7SlwPM8Obij8AwZJdFpw63XDAw+pxPwY0olH1b3Gd+oYEiEzYe6ZPScDwyHkk3J1s6GaN7twLPaY53JQrpdrz0nGp1/8zFr0iEP0iO+DvgpgFt1UOycHOnM6OIuDLSpMgOGYk8FxtK09pHwLzFy2PvymBwl4CHIuUa176Q7rJJv7D/N4Og5eOtqahBXwqYoToXes0fbeqc4ul8ce0JbvKSZs40UmV5nwNyVHOXYUuv3e0bDasyf/KmOxLzCFg92VWXNJhpfBT/WUAr+hnarSB35/+lXv+SejCw6itUNn2VEgGQsRskkqbgAT90I02gKRU9iRyqsXwd3HvUU4SLc3GgPhn41UT"
+            POSTGRES_DB: "AgARamUN+UHYHpNJSTb3WbHlf+76faMGnp9yep6Gvaw8v0A2q90twRmYP+QtXBIa9MnHD+zZpi4lQ+x+oBhJ3P0KZOhVcF41g4f7+5uDClpLYQUh4qprcPEKLBqs58zCO4h569ivW+0vA9am4Kmm+Frl5iVQhHZyFe/9Bnq6UazCHGR+thvamF1Yiou7ZI2nwsylMgpAs+s2Vyi/NqxEiWKfggusSML2Lqt1ko8o+gSSzPYs2Jaejca3jEKHa0H/PhDDZgcf/knm00jsGxw2zaePa8oPC3FhUr1hPSZgnfDIrBIpyxs8I33rNzTo/TTsxNoLNo/z6jlh9j9vjjeibed02O/tQgdUI9T9q9wrPE9HXwevuXvN9f9YW9ohVvwS2SYJYpXoEcKqgdk1KTBKQZmj8xh/qYUCNsZAG5kLSbPJ9sE3M2l3rMKLUHSZc4KS8d59D481J7OtDQ9Zhl6R/nWtJK7v8Eso/djzLXDNqV5Pl/nys0op8sGDfSShnvWueBKC8lsIVrGn9+ApU44RNMx9mEv8yWw9fzvgF8hJsJTw7IDladbwXkwly3yuwm9UTBZZIVi4c5pKkLbB5S17BKK1aPMsN83F3I5ydTmsyYjoXxb83M/Hy3wF324Erx6+l4rUf7d6THG8cfIauFzVn7tCgyK1PagByEDEpUhYYnX9hAobT3JiK7tPCA82dbY8lE2EuOXlgg=="
+            DATABASE_URL: "AgDCT4/Qepi5SFBwfyyA2rNuxG5ou5E1gvwedo2EObfFpeVFEIg6IiOZJRTDmwuDw2WfQM3nBYPtFgng2Wa9T09y6x6qARWEzddj66bLggVOb0yEAUc5uSWuu9BS4lD+B/POI58VYEEmAtUThR5fKBnnX28tRA4peged8Mcs1vo2SGsOvPgkP3yNr9rZBFuBWQmjaFyGKCQSp4qy05WwqOH3hRkjugTZju61FKsXZCfvf4WxVgDe5oO8m5Y2H/mao3LHdHu9VINv7vos1yAV8hrzHs26ryQFJZbV2k5xHWGF8AFFYrNdszoWdZ2JxX25iXs1Mo2qZLpULGZZycrpxkeZny+YQ330SCD+XmwqaADevhRSk2JqBdorLbHokXBCZqIyLNUUSPz3JAMK6/OkADi+WqdruTjZykcLI6yAIRrCHh966IXuLWMuD40NM6SJ4JC9rB1tuCtDNlxcsjzgXI5+Oy8yQMUbsnHSYZ+EG6kjL8xTyzVtA7FkqPnLc4AFLFwADySfNG05lNIhjmGmzMIorBIhGheXhrsLIBW6nEAltA/ja8Wx4JhVX8JxAn11qNKvPHKOMbOiJh/GLMH7WSI8iZJZIKbhAzaBswqKETcomM1S0+sWUoz+OLZCR/EH0r1xZES4sFdbZWhhUlSpczyJXLoATQ2s/1ashLlCXlO6BS+uTD24w7XbBAKO3dzrLMVv19fmkrMeM20Ve+lsWKh5qogf/vKwuRHmfdd7XBbXfrG2nZ3i2XkN9pNK95baWic="
   destination:
     server: https://kubernetes.default.svc
     namespace: gitops-nodejs-postgres
@@ -21,3 +48,5 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
